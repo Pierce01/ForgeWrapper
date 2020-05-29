@@ -24,6 +24,9 @@ public class Main {
         Path forgeDir = librariesDir.resolve("net").resolve("minecraftforge").resolve("forge").resolve(forgeFullVersion);
         if (getAdditionalLibraries(minecraftDir, forgeDir, mcVersion, forgeFullVersion, mcpFullVersion).anyMatch(path -> !Files.exists(path))) {
             System.out.println("Some extra libraries are missing! Run the installer to generate them now.");
+            System.out.println("Forge Dir: " + forgeDir);
+            System.out.println("Minecraft Dir: " + minecraftDir);
+            System.out.println("Library Dir: " + librariesDir);
             URLClassLoader ucl = URLClassLoader.newInstance(new URL[] {
                 Main.class.getProtectionDomain().getCodeSource().getLocation(),
                 Launcher.class.getProtectionDomain().getCodeSource().getLocation(),

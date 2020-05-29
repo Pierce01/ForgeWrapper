@@ -23,42 +23,25 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class Converter {
-    public static void convert(Path installerPath, Path targetDir, Path multimcDir) throws Exception {
+    public static void convert(Path installerPath, Path targetDir, Path saveTo) throws Exception {
         JsonObject installer = getJsonFromZip(installerPath, "version.json");
         JsonObject installProfile = getJsonFromZip(installerPath, "install_profile.json");
         List<String> arguments = getAdditionalArgs(installer);
         String mcVersion = arguments.get(arguments.indexOf("--fml.mcVersion") + 1);
         String forgeVersion = arguments.get(arguments.indexOf("--fml.forgeVersion") + 1);
-        String forgeFullVersion = "forge-" + mcVersion + "-" + forgeVersion;
         StringBuilder wrapperVersion = new StringBuilder();
 
         JsonObject pack = convertPackJson(mcVersion);
         JsonObject patches = convertPatchesJson(installer, installProfile, mcVersion, forgeVersion, wrapperVersion);
 
-        Files.createDirectories(targetDir);
+        // Copy ForgeWrapper to <instance>/<saveTo> folder.
+        Files.createDirectories(saveTo);
+        Files.copy(Paths.get(Converter.class.getProtectionDomain().getCodeSource().getLocation().toURI()), saveTo.resolve(wrapperVersion.toString()), StandardCopyOption.REPLACE_EXISTING);
 
-        // Copy mmc-pack.json and instance.cfg to <instance> folder.
-        Path instancePath = targetDir.resolve(forgeFullVersion);
-        Files.createDirectories(instancePath);
-        Files.copy(new ByteArrayInputStream(pack.toString().getBytes(StandardCharsets.UTF_8)), instancePath.resolve("mmc-pack.json"), StandardCopyOption.REPLACE_EXISTING);
-        Files.copy(new ByteArrayInputStream(("InstanceType=OneSix\nname=" + forgeFullVersion).getBytes(StandardCharsets.UTF_8)), instancePath.resolve("instance.cfg"), StandardCopyOption.REPLACE_EXISTING);
-
-        // Copy ForgeWrapper to <instance>/libraries folder.
-        Path librariesPath = instancePath.resolve("libraries");
-        Files.createDirectories(librariesPath);
-        Files.copy(Paths.get(Converter.class.getProtectionDomain().getCodeSource().getLocation().toURI()), librariesPath.resolve(wrapperVersion.toString()), StandardCopyOption.REPLACE_EXISTING);
-
-        // Copy net.minecraftforge.json to <instance>/patches folder.
-        Path patchesPath = instancePath.resolve("patches");
+        // Copy mcVersion.json to <instance>/forge/mcVersion folder.
+        Path patchesPath = targetDir.resolve("forge").resolve(mcVersion);
         Files.createDirectories(patchesPath);
-        Files.copy(new ByteArrayInputStream(patches.toString().getBytes(StandardCharsets.UTF_8)), patchesPath.resolve("net.minecraftforge.json"), StandardCopyOption.REPLACE_EXISTING);
-
-        // Copy forge installer to MultiMC/libraries/net/minecraftforge/forge/<mcVersion>-<forgeVersion> folder.
-        if (multimcDir != null) {
-            Path targetInstallerPath = multimcDir.resolve("libraries").resolve("net").resolve("minecraftforge").resolve("forge").resolve(forgeVersion);
-            Files.createDirectories(targetInstallerPath);
-            Files.copy(installerPath, targetInstallerPath.resolve(forgeFullVersion + "-installer.jar"), StandardCopyOption.REPLACE_EXISTING);
-        }
+        Files.copy(new ByteArrayInputStream(patches.toString().getBytes(StandardCharsets.UTF_8)), patchesPath.resolve("version.json"), StandardCopyOption.REPLACE_EXISTING);
     }
 
     public static List<String> getAdditionalArgs(JsonObject installer) {

@@ -15,7 +15,7 @@ public class ClientInstall4MultiMC extends ClientInstall {
     @Override
     public boolean run(File target, Predicate<String> optionals) {
         File librariesDir = Main.getLibrariesDir();
-        File clientTarget = new File(String.format("%s/com/mojang/minecraft/%s/minecraft-%s-client.jar", librariesDir.getAbsolutePath(), this.profile.getMinecraft(), this.profile.getMinecraft()));
+        File clientTarget = new File(String.format("%s/versions/%s/%s.jar", librariesDir.getParentFile().getAbsolutePath(), this.profile.getMinecraft(), this.profile.getMinecraft()));
         return this.processors.process(librariesDir, clientTarget);
     }
 }

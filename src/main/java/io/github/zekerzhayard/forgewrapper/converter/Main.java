@@ -8,16 +8,16 @@ import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) {
-        Path installer = null, instance = Paths.get("."), multimc = null;
+        Path installer = null, instance = Paths.get("."), saveTo = null;
         try {
             HashMap<String, String> argsMap = parseArgs(args);
             installer = Paths.get(argsMap.get("--installer"));
+            saveTo = Paths.get(argsMap.get("--saveTo"));
             if (argsMap.containsKey("--instance")) {
                 instance = Paths.get(argsMap.get("--instance"));
-                multimc = instance.getParent();
             }
         } catch (Exception e) {
-            System.out.println("Invalid arguments! Use: java -jar <ForgeWrapper.jar> --installer=<forge-installer.jar> [--instance=<instance-path>]");
+            System.out.println("Invalid arguments! Use: java -jar <ForgeWrapper.jar> --installer=<forge-installer.jar> --saveTo=<ForgeWrapper copy save> [--instance=<instance-path>]");
             throw new RuntimeException(e);
         }
 
@@ -26,7 +26,7 @@ public class Main {
                 Converter.class.getProtectionDomain().getCodeSource().getLocation(),
                 installer.toUri().toURL()
             }, null);
-            ucl.loadClass("io.github.zekerzhayard.forgewrapper.converter.Converter").getMethod("convert", Path.class, Path.class, Path.class).invoke(null, installer, instance, multimc);
+            ucl.loadClass("io.github.zekerzhayard.forgewrapper.converter.Converter").getMethod("convert", Path.class, Path.class, Path.class).invoke(null, installer, instance, saveTo);
             System.out.println("Successfully install Forge for MultiMC!");
         } catch (Exception e) {
             System.out.println("Failed to install Forge!");
